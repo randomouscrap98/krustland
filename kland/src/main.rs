@@ -7,16 +7,16 @@ use s3::{ bucket::Bucket, creds::Credentials, region::Region }; //, S3Error };
 async fn main() -> Result<(), Box<dyn Error>> {
    let settings = get_settings()?;
    let bucket = make_bucket(&settings)?;
-   let rbucket = &bucket;
+   let rbucket = &bucket; //immutable reference, ownership not transferred
 
    let s3image = warp::path!("i" / String)
-       .and_then(|imagename| async move {
+       .and_then(move |imagename| async move {
            let bucketresult = rbucket.get_object(&imagename).await;
            match bucketresult {
-               Ok((data, code)) => {
+               Ok((data, _code)) => {
                    Ok(format!("You asked for: {}, was {} bytes", imagename, data.len()))
                },
-               Err(e) => Err(warp::reject::not_found())
+               Err(_e) => Err(warp::reject::not_found())
            }
        });
 
